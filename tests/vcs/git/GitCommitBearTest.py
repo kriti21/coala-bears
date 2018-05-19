@@ -100,6 +100,20 @@ class GitCommitBearTest(unittest.TestCase):
                          [])
         self.assert_no_msgs()
 
+    def test_github_pull_request_temporary_merge_commit(self):
+        self.run_git_command('remote', 'add', 'upstream',
+                             'git://github.com/kriti21/coala-bears.git')
+        run_shell_command('git fetch upstream pull/3/merge:good_test')
+        run_shell_command('git checkout good_test')
+        self.assertEqual(self.run_uut(), [])
+
+        self.run_git_command('remote', 'add', 'upstream',
+                             'git://github.com/kriti21/coala-bears.git')
+        run_shell_command('git fetch upstream pull/2/merge:bad_test')
+        run_shell_command('git checkout bad_test')
+        self.assertEqual(self.run_uut(),
+          ["Shortlog of HEAD commit isn't in imperative mood! Bad words are 'Added'"])
+
     def test_shortlog_checks_length(self):
         self.git_commit('Commit messages that nearly exceed default limit..')
 
