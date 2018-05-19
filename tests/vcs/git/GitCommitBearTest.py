@@ -100,6 +100,29 @@ class GitCommitBearTest(unittest.TestCase):
                          [])
         self.assert_no_msgs()
 
+    def test_github_pull_request_temporary_merge_commit(self):
+        self.run_git_command('remote', 'add', 'upstream',
+                             'git://github.com/kriti21/coala-bears.git')
+        run_shell_command(
+            'git fetch upstream pull/3/merge:good_test')
+        run_shell_command('git checkout good_test')
+        self.assertEqual(self.run_uut(), [])
+
+        # If parent of this merge commit is wrong, message is
+        # displayed accordingly.
+        self.run_git_command('remote', 'add', 'upstream',
+                             'git://github.com/kriti21/coala-bears.git')
+        run_shell_command(
+            'git fetch upstream pull/2/merge:bad_test')
+        run_shell_command('git checkout bad_test')
+        self.assertEqual(self.run_uut(),
+                         ['Shortlog of the HEAD commit contains 70 '
+                          'character(s). This is 20 character(s) longer '
+                          'than the limit (70 > 50).'])
+
+        self.git_commit('Simple git commit')
+        self.assertEqual(self.run_uut(), [])
+
     def test_shortlog_checks_length(self):
         self.git_commit('Commit messages that nearly exceed default limit..')
 
