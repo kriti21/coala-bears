@@ -2,6 +2,7 @@ import os
 import shutil
 
 from bears.vcs.CommitBear import _CommitBear
+from bears.vcs.VCSCommitBear import VCSCommitBear
 from coala_utils.ContextManagers import change_directory
 from coalib.misc.Shell import run_shell_command
 
