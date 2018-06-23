@@ -9,6 +9,7 @@ from tempfile import mkdtemp
 
 from coalib.testing.BearTestHelper import generate_skip_decorator
 from bears.vcs.git.GitCommitBear import GitCommitBear
+from bears.vcs.VCSCommitBear import CommitResult
 from coala_utils.string_processing.Core import escape
 from coalib.misc.Shell import run_shell_command
 from coalib.settings.ConfigurationGathering import get_config_directory
@@ -42,7 +43,8 @@ class GitCommitBearTest(unittest.TestCase):
         :param kwargs: Keyword arguments to forward to the run function.
         :return:       A list of the message strings.
         """
-        return list(result.message for result in self.uut.run(*args, **kwargs))
+        return list(result.message for result in self.uut.run(
+          *args, **kwargs) if not (isinstance(result, CommitResult)))
 
     def assert_no_msgs(self):
         """
@@ -84,6 +86,10 @@ class GitCommitBearTest(unittest.TestCase):
         # to log all commits on a newly created repository.
         self.assertEqual(self.run_uut(), [])
 
+        git_error = self.msg_queue.get().message
+        self.assertEqual(git_error[:4], 'git:')
+
+        # From VCSCommitBear
         git_error = self.msg_queue.get().message
         self.assertEqual(git_error[:4], 'git:')
 
