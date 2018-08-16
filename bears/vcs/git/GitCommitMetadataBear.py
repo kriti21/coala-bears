@@ -1,4 +1,5 @@
 import os
+import re
 import shutil
 
 from bears.vcs.VCSCommitMetadataBear import VCSCommitMetadataBear, COMMIT_TYPE
@@ -18,15 +19,29 @@ class GitCommitMetadataBear(VCSCommitMetadataBear):
 
     def get_head_commit_sha(self):
         with change_directory(self.get_config_dir() or os.getcwd()):
-            (stdout, stderr) = run_shell_command('git rev-parse HEAD')
+            stdout, stderr = run_shell_command('git log -1 --pretty=%B')
 
             if stderr:
                 vcs_name = list(self.LANGUAGES)[0].lower()+':'
                 self.err(vcs_name, repr(stderr))
                 raise RuntimeError('The directory is not a git repository.')
 
-            head_commit_sha = stdout.strip('\n')
-            return head_commit_sha
+            pos = stdout.find('\n')
+            shortlog = stdout[:pos] if pos != -1 else stdout
+
+            github_pull_request_temporary_merge_commit_regex = re.compile(
+                r'^Merge ([0-9a-f]{40}) into ([0-9a-f]{40})$')
+            match = re.fullmatch(
+                github_pull_request_temporary_merge_commit_regex, shortlog)
+
+            if match:
+                unmerged_head_commit_sha = match.group(1)
+                return unmerged_head_commit_sha
+
+            else:
+                head_commit_sha = run_shell_command(
+                    'git rev-parse HEAD')[0].strip('\n')
+                return head_commit_sha
 
     def analyze_commit(self, head_commit_sha):
         commit_type = COMMIT_TYPE.simple_commit

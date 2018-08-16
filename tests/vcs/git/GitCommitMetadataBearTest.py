@@ -178,3 +178,17 @@ class AnalyzeGitCommitTest(unittest.TestCase):
         self.assertEqual(self.run_uut(),
                          [(test_raw_commit_msg, test_sha5, parents,
                            COMMIT_TYPE.merge_commit, [], [], [])])
+
+    def test_github_pull_request_temporary_merge_commit(self):
+        self.run_git_command('remote', 'add', 'upstream',
+                             'https://github.com/coala/coala-quickstart.git')
+        run_shell_command('git fetch upstream pull/259/merge:pytest36')
+        run_shell_command('git checkout pytest36')
+        self.assertEqual(self.run_uut(), [])
+
+        run_shell_command('git fetch upstream pull/257/merge:patch-1')
+        run_shell_command('git checkout patch-1')
+        self.assertEqual(self.run_uut(),
+                         ["Shortlog of HEAD commit isn't in imperative"
+                          " mood! Bad words are 'Fixed'"])
+
