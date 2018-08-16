@@ -178,3 +178,9 @@ class AnalyzeGitCommitTest(unittest.TestCase):
         self.assertEqual(self.run_uut(),
                          [(test_raw_commit_msg, test_sha5, parents,
                            COMMIT_TYPE.merge_commit, [], [], [])])
+
+    def test_analyze_github_PR_temporary_merge_commit(self):
+        run_shell_command('git remote add upstream https://github.com/coala/coala-quickstart.git')
+        run_shell_command('git fetch upstream pull/259/merge:pytest36')
+        run_shell_command('git checkout pytest36')
+        self.assertEqual(self.run_uut(), [])
